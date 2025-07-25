@@ -32,28 +32,28 @@ https://notey-project.onrender.com/
 
 ## 📁 Project Structure
 Notey/
-├── Notey/ # Django project config
-│ ├── init.py
-│ ├── asgi.py
-│ ├── settings.py # Project settings
-│ ├── urls.py # Project-wide URL routing
-│ └── wsgi.py
+├── Notey/                     # Django project settings
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
 │
-├── core/ # Main app
-│ ├── init.py
-│ ├── admin.py
-│ ├── apps.py
-│ ├── form.py # Custom Django forms
-│ ├── models.py # Database models
-│ ├── tests.py
-│ ├── urls.py # App-specific URL routing
-│ ├── views.py # View logic
-│ ├── migrations/ # Database migrations
-│ └── templates/ # HTML templates
+├── core/                      # Main application logic
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── form.py                # Custom form classes
+│   ├── models.py              # Database models
+│   ├── tests.py
+│   ├── urls.py                # App routes
+│   ├── views.py               # All view functions
+│   ├── migrations/            # DB migration files
+│   └── templates/             # HTML templates
 │
-├── manage.py
-├── .gitignore
-└── requirements.txt
+├── manage.py                 # Django management script
+├── requirements.txt          # Python dependencies
+└── .gitignore
 
 ---
 
