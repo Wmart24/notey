@@ -31,6 +31,7 @@ https://notey-project.onrender.com/
 ---
 
 ## 📁 Project Structure
+```text
 Notey/
 ├── Notey/                     # Django project settings
 │   ├── __init__.py
@@ -43,16 +44,16 @@ Notey/
 │   ├── __init__.py
 │   ├── admin.py
 │   ├── apps.py
-│   ├── form.py                # Custom form classes
-│   ├── models.py              # Database models
+│   ├── form.py
+│   ├── models.py
 │   ├── tests.py
-│   ├── urls.py                # App routes
-│   ├── views.py               # All view functions
-│   ├── migrations/            # DB migration files
-│   └── templates/             # HTML templates
+│   ├── urls.py
+│   ├── views.py
+│   ├── migrations/
+│   └── templates/
 │
-├── manage.py                 # Django management script
-├── requirements.txt          # Python dependencies
+├── manage.py
+├── requirements.txt
 └── .gitignore
 
 ---
