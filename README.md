@@ -55,7 +55,7 @@ Notey/
 ├── manage.py
 ├── requirements.txt
 └── .gitignore
-
+```
 ---
 
 ## 🚀 Features
