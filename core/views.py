@@ -12,7 +12,8 @@ from django.views.generic import UpdateView
 @login_required(login_url='/login')
 def home(request):
     context = {}
-    if request.method =="POST":
+    profile, _ = Profile.objects.get_or_create(user=request.user)  # ✅ Auto-create profile
+    if request.method == "POST":
         invite_code = request.POST.get('invite_code', ' ').strip()
 
         try:
@@ -24,7 +25,6 @@ def home(request):
 
         try:
             group = Group.objects.get(invite_code=obj_code)
-            profile = Profile.objects.get(user=request.user)
 
             if group in profile.groups.all():
                 context['error'] = "You're already in this group"
@@ -50,7 +50,7 @@ def group_create(request):
             group.created_by = request.user
             group.save()
             group.members.clear()
-            profile = Profile.objects.get(user=request.user)
+            profile, _ = Profile.objects.get_or_create(user=request.user)  # ✅
             group.members.add(request.user)
             profile.groups.add(group)
             return redirect("/home")
@@ -61,12 +61,10 @@ def group_create(request):
 
 @login_required(login_url='/login')
 def group_list(request):
-    try:
-        profile = Profile.objects.get(user=request.user)
-        groups = profile.groups.all()
-    except Profile.DoesNotExist:
-        raise Http404("Profile does not exist")
-    context ={
+    profile, _ = Profile.objects.get_or_create(user=request.user)  # ✅
+    groups = profile.groups.all()
+
+    context = {
         "groups": groups,
         "user": request.user
     }
@@ -83,7 +81,7 @@ def group_list(request):
 
 @login_required(login_url='/login')
 def view_universities(request):
-    profile = Profile.objects.get(user=request.user)
+    profile, _ = Profile.objects.get_or_create(user=request.user)  # ✅
     universities = profile.universities.all()
     context = {
         "universities": universities
@@ -125,17 +123,13 @@ def note_view(request, id):
     except Note.DoesNotExist:
         raise Http404("Note does not exist")
 
-    try:
-        profile = Profile.objects.get(user=request.user)
-    except Profile.DoesNotExist:
-        raise Http404("Profile does not exist")
+    profile, _ = Profile.objects.get_or_create(user=request.user)  # ✅
 
     if note.is_personal and request.user != note.author:
         return redirect('/home')
 
     if note.group and note.group not in profile.groups.all():
         return redirect('/home')
-
 
     comments = Comment.objects.filter(note=note).order_by('-created_time')
     context['comments'] = comments
@@ -152,7 +146,7 @@ def note_view(request, id):
                 return redirect(f'/group/{note.group.id}')
             else:
                 return redirect("/personal")
-        elif action == 'comment' and note.is_personal == False:
+        elif action == 'comment' and not note.is_personal:
             form = CommentCreationForm(request.POST)
             if form.is_valid():
                 comment = form.save(commit=False)
@@ -162,7 +156,7 @@ def note_view(request, id):
                 context['comment_form'] = form
                 return redirect(f'/note/{note_id}')
 
-        elif action == "comment_delete" and note.is_personal == False:
+        elif action == "comment_delete" and not note.is_personal:
             comment_id = request.POST.get('comment-id')
             try:
                 comment = Comment.objects.get(id=comment_id)
@@ -172,13 +166,13 @@ def note_view(request, id):
             if comment and (request.user == note.author or request.user == note.group.created_by or request.user == comment.author):
                 comment.delete()
                 return redirect(f'/note/{note_id}')
-        elif action == "up_vote" and note.is_personal == False:
+        elif action == "up_vote" and not note.is_personal:
             if request.user not in note.Upvote.all():
                 note.Upvote.add(request.user)
                 note.Downvote.remove(request.user)
             else:
                 note.Upvote.remove(request.user)
-        elif action == "down_vote" and note.is_personal == False:
+        elif action == "down_vote" and not note.is_personal:
             if request.user not in note.Downvote.all():
                 note.Downvote.add(request.user)
                 note.Upvote.remove(request.user)
@@ -201,7 +195,7 @@ class NoteUpdateView(UpdateView):
         id_ = self.kwargs.get("id")
         return get_object_or_404(Note, id=id_)
 
-    def form_valid(selfself, form):
+    def form_valid(self, form):
         print(form.cleaned_data)
         return super().form_valid(form)
 
@@ -212,7 +206,7 @@ def note_create(request, id):
     except Group.DoesNotExist:
         raise Http404("Group Does Not Exist")
 
-    profile = Profile.objects.get(user=request.user)
+    profile, _ = Profile.objects.get_or_create(user=request.user)  # ✅
 
     if group not in profile.groups.all():
         return HttpResponseForbidden("You are not a member of this group.")
@@ -265,7 +259,7 @@ def sign_up(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
-            profile = Profile.objects.create(user=user)
+            profile, _ = Profile.objects.get_or_create(user=user)  # ✅
             profile.universities.add(form.cleaned_data['university'])
             return redirect('/home')
     else:

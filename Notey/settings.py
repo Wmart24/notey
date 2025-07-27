@@ -21,13 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY", "dev-secret-key-change-this")
 #'django-insecure-$z0jt!u)yj$&pg$$m6_l&@!!pk*oj$g)9bkasbue+pc+tq@h95'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", 'true').lower() == "true"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
-
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1 localhost").split(" ")
 
 # Application definition
 
@@ -80,15 +79,24 @@ WSGI_APPLICATION = 'Notey.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+# Existing DATABASES dictionary
 DATABASES = {
-    'default': {
+    'default': {}
+}
+
+# Read the DATABASE_URL environment variable
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url:
+    # Use Postgres (or any database provided in DATABASE_URL)
+    DATABASES['default'] = dj_database_url.parse(database_url)
+else:
+    # Fallback to SQLite if DATABASE_URL is not set
+    DATABASES['default'] = {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
 
-database_url = os.environ.get("DATABASE_URL")
-DATABASES['default'] = dj_database_url.parse(database_url)
 
 
 # Password validation
@@ -134,3 +142,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/home'
 LOGOUT_REDIRECT_URL = '/login'
+
+# --- AUTO LOGIN DEV USER ---
+if DEBUG:
+    from django.contrib.auth import get_user_model
+
+    class DevAutoLoginMiddleware:
+        def __init__(self, get_response):
+            self.get_response = get_response
+
+        def __call__(self, request):
+            if not request.user.is_authenticated:
+                User = get_user_model()
+                user, created = User.objects.get_or_create(username="devuser")
+                request.user = user
+            return self.get_response(request)
+
+    # Insert middleware right after AuthenticationMiddleware
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index('django.contrib.auth.middleware.AuthenticationMiddleware') + 1,
+        'Notey.settings.DevAutoLoginMiddleware'
+    )
